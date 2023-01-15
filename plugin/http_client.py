@@ -18,6 +18,8 @@ VAR_REGEX = re.compile('^# ?(:[^: ]+)\\s*=\\s*(.+)$')
 GLOBAL_VAR_REGEX = re.compile('^# ?(\$[^$ ]+)\\s*=\\s*(.+)$')
 FILE_REGEX = re.compile("!((?:file)|(?:(?:content)))\((.+)\)")
 JSON_REGEX = re.compile("(javascript|json)$", re.IGNORECASE)
+GLOBAL_TIMEOUT_REGEX = re.compile(r"^#\s*\$TIMEOUT_S\s*=\s*(\d+)")
+TIMEOUT_REGEX = re.compile(r"^#\s*:TIMEOUT_S\s*=\s*(\d+)")
 
 verify_ssl = vim.eval('g:http_client_verify_ssl') == '1'
 
@@ -32,9 +34,22 @@ def is_comment(s):
     return s.startswith('#')
 
 
+def get_timeout(buffer, regex):
+    timeout = None
+    for line in buffer:
+        match = regex.match(line)
+        if match:
+            timeout = int(match.groups()[0])
+    return timeout
+
+
 def do_request(block, buf):
     variables = dict((m.groups() for m in (GLOBAL_VAR_REGEX.match(l) for l in buf) if m))
     variables.update(dict((m.groups() for m in (VAR_REGEX.match(l) for l in block) if m)))
+
+    global_timeout = get_timeout(buf, GLOBAL_TIMEOUT_REGEX)
+    local_timeout = get_timeout(block, TIMEOUT_REGEX)
+    timeout = local_timeout if local_timeout is not None else global_timeout
 
     block = [line for line in block if not is_comment(line) and line.strip() != '']
 
@@ -87,7 +102,8 @@ def do_request(block, buf):
         json_data = json.loads(data)
         data = None
 
-    response = requests.request(method, url, verify=verify_ssl, headers=headers, data=data, files=files, json=json_data)
+    response = requests.request(method, url, verify=verify_ssl, headers=headers,
+            data=data, files=files, json=json_data, timeout=timeout)
     content_type = response.headers.get('Content-Type', '').split(';')[0]
 
     response_body = response.text

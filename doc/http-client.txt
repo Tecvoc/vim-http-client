@@ -83,6 +83,13 @@ If you'd like to pass form-encoded data, set your body like this: >
 
 See `examples/examples.txt` for more examples.
 
+Use the variable TIMEOUT_S either as global or local variable to get a timeout
+if there's no response from the server or the connection can't be made to the
+server for the given number of seconds. The timeout value should be an integer.
+
+Set value as # $TIMEOUT_S=30 to get a global timeout of 30 seconds for all
+requests and # :TIMEOUT_S=30 in a block to set timeout on a individual request.
+
 The output appears in a new split. Syntax highlighting is interpreted from the
 Content-Type header of the result. It currently supports XML, JSON, and HTML;
 all others will get ft=text.

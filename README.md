@@ -77,6 +77,12 @@ If you'd like to pass form-encoded data, set your body like this:
 
 You can also send files using absolute path to file: `!file(PATH_TO_FILE)` or by simply providing it's content: `!content(my file content)`.
 
+To set timeout for the requests (in seconds) at global level or inidvidual request level use the variable TIMEOUT_S set to an integer value.
+```
+# $TIMEOUT_S = 30 (sets 30seconds timeout for all requests)
+# :TIMEOUT_S = 30 (sets 30seconds timeout on individual blocks)
+```
+
 Example:
 ```
 POST http://httpbin.org/post
